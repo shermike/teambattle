@@ -7,9 +7,7 @@ import "./IGame.sol"
 contract ChessGame is GameBase {
     mapping(string => uint256) public values;
 
-    function getWinner() external returns (address) {
-
-    }
+    
 
     function getName() external returns (string memory) {
         return "Chess";
