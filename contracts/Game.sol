@@ -35,8 +35,8 @@ contract GameBase is NilBase {
     Team[] teams;
     GameResult result;
     uint moveStart;
-    uint bid;
     uint moveTimeout;
+    uint bid;
     int public winner = -1;
     address oracle;
 
@@ -69,6 +69,7 @@ contract GameBase is NilBase {
         for (uint i = 0; i < teams[getCurrentTeamId()].players.length; i++) {
             address voter = teams[getCurrentTeamId()].players[i];
             bytes8 moveData = voters[voter];
+            // Check
             if (moveData[0] == 0) {
                 continue;
             }
@@ -89,7 +90,6 @@ contract GameBase is NilBase {
         bytes memory callData = abi.encodeWithSelector(IGameOracle.registerRequest.selector, movesChain);
 
         // Nil.sendRequest(oracle, 0, Nil.ASYNC_REQUEST_MIN_GAS, context, callData);
-
         // (bytes memory returnData, bool success) = Nil.awaitCall(oracle, Nil.ASYNC_REQUEST_MIN_GAS, callData);
         // require(success);
 
@@ -102,8 +102,7 @@ contract GameBase is NilBase {
         delete moveList;
     }
 
-    function voteMove(uint _round, bytes8 move) public {
-        require(_round == round);
+    function voteMove(bytes8 move) public {
         require(voters[msg.sender][0] == 0);
         voters[msg.sender] = move;
         // moves[move].push(msg.sender);
@@ -112,6 +111,10 @@ contract GameBase is NilBase {
         if (moveList.length == teams[getCurrentTeamId()].players.length) {
             finishMove();
         }
+    }
+
+    function getRemainingTime() public view returns(int) {
+        return int(moveStart) + int(moveTimeout) - int(block.number);
     }
 
     function getCurrentTeamId() public view returns (uint) {
