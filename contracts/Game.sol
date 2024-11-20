@@ -26,8 +26,8 @@ interface IGame {
 }
 
 interface IGameOracle {
-    function registerRequest(bytes32[] memory request) external;
-    function getRating(address player) external returns(uint);
+    function registerRequest(bytes8[] memory request) external;
+    // function getRating(address player) external returns(uint);
 }
 
 contract GameBase is NilBase {
@@ -40,10 +40,10 @@ contract GameBase is NilBase {
     int public winner = -1;
     address oracle;
 
-    bytes32[] movesChain;
-    mapping(address => bytes32) voters;
-    mapping(bytes32 => uint) moveWeigths;
-    bytes32[] moveList;
+    bytes8[] movesChain;
+    mapping(address => bytes8) voters;
+    mapping(bytes8 => uint) moveWeigths;
+    bytes8[] moveList;
 
     constructor(Team memory a, Team memory b, uint _bid, uint _moveTimeout, address _oracle) {
         teams.push(a);
@@ -54,26 +54,27 @@ contract GameBase is NilBase {
         oracle = _oracle;
     }
 
-    function getTeamId(address player) public returns(uint) {
+    function getTeamId(address player) public view returns(int) {
         for (uint i = 0; i < teams.length; i++) {
             for (uint j = 0; j < teams[i].players.length; j++) {
                 if (teams[i].players[j] == player) {
-                    return i;
+                    return int(i);
                 }
             }
         }
+        return -1;
     }
 
     function finishMove() internal {
         for (uint i = 0; i < teams[getCurrentTeamId()].players.length; i++) {
             address voter = teams[getCurrentTeamId()].players[i];
-            bytes32 moveData = voters[voter];
+            bytes8 moveData = voters[voter];
             if (moveData[0] == 0) {
                 continue;
             }
             moveWeigths[moveData] += 1;
         }
-        bytes32 bestMove = moveList[0];
+        bytes8 bestMove = moveList[0];
         for (uint i = 0; i < moveList.length; i++) {
             uint currWeight = moveWeigths[bestMove];
             uint weight = moveWeigths[moveList[i]];
@@ -101,7 +102,7 @@ contract GameBase is NilBase {
         delete moveList;
     }
 
-    function voteMove(uint _round, bytes32 move) public {
+    function voteMove(uint _round, bytes8 move) public {
         require(_round == round);
         require(voters[msg.sender][0] == 0);
         voters[msg.sender] = move;
@@ -147,18 +148,16 @@ contract GameBase is NilBase {
     }
 }
 
-contract ChessOracle is NilBase {
+contract ChessOracle is NilBase, IGameOracle {
     mapping(bytes32 => address[]) private requesters;
-    // mapping(bytes32 => bytes) private requests;
-    bytes[] public requests;
+    bytes8[][] public requests;
 
-    function registerRequest(bytes memory request) public {
-        requests.push(request);
-        // requests[keccak256(request)] = request;
-        requesters[keccak256(request)].push(msg.sender);
+    function registerRequest(bytes8[] memory moves) public {
+        requests.push(moves);
+        requesters[keccak256(abi.encodePacked(moves))].push(msg.sender);
     }
 
-    function resolveRequest(bytes32 request, GameResult result) public {
+    function resolveRequest(bytes8 request, GameResult result) public {
         address[] memory addrs = requesters[request];
         bytes memory res = abi.encodeWithSignature("setResultFromOracle(GameResult)", result);
         for (uint256 i = 0; i < addrs.length; i++) {
@@ -166,7 +165,7 @@ contract ChessOracle is NilBase {
         }
     }
 
-    // function getRequests() public view returns (bytes[][] memory) {
-    //     return requests;
-    // }
+    function getRequests() public view returns(bytes8[][] memory) {
+        return requests;
+    }
 }
