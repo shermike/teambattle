@@ -148,6 +148,13 @@ contract GameBase is NilBase {
     }
 }
 
+contract GameFactory {
+
+    function deploy() public returns(address) {
+        // address addr = Nil.asyncDeploy()
+    }
+}
+
 contract ChessOracle is NilBase, IGameOracle {
     mapping(bytes32 => address[]) private requesters;
     bytes8[][] public requests;
@@ -157,8 +164,8 @@ contract ChessOracle is NilBase, IGameOracle {
         requesters[keccak256(abi.encodePacked(moves))].push(msg.sender);
     }
 
-    function resolveRequest(bytes8 request, GameResult result) public {
-        address[] memory addrs = requesters[request];
+    function resolveRequest(bytes8[] memory request, GameResult result) public {
+        address[] memory addrs = requesters[keccak256(abi.encodePacked(request))];
         bytes memory res = abi.encodeWithSignature("setResultFromOracle(GameResult)", result);
         for (uint256 i = 0; i < addrs.length; i++) {
             Nil.asyncCall(addrs[i], address(this), 0, res);
