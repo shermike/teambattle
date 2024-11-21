@@ -20,61 +20,48 @@ class PositionResult(enum.Enum):
     DRAW = 3
 
 
-def fetch_unresolved_positions() -> List[Position]:
-    args = ["nil", "contract", "call-readonly", "-q", "--abi", "contracts/Game/ChessOracle.abi", ORACLE_ADDRESS, "getRequests"]
+def fetch_unresolved_position() -> (Position, int):
+    args = ["nil", "contract", "call-readonly", "-q", "--abi", "contracts/Game/ChessOracle.abi", ORACLE_ADDRESS, "getRequest"]
     result = subprocess.run(args, capture_output=True, text=True).stdout
-    position_strings = result.partition(" ")[2].strip("[]\n").split("]] [[")
-    positions = []
-    for position_string in position_strings:
-        position_encoded_moves_strings = position_string.split("] [")
-        position_moves = []
-        for move_encoded_string in position_encoded_moves_strings:
-            move_string = ""
-            for move_byte in map(lambda x: int(x), move_encoded_string.split(" ")):
-                if move_byte == 0:
-                    break
-                move_string += chr(move_byte)
-            position_moves.append(move_string)
-        positions.append(position_moves)
-    return positions
+    fields = result.partition(" ")[2].strip("{}\n").rsplit(" ", 2)
+    position_string, address, request_id = fields[0], fields[1], int(fields[2])
+    if request_id == 0:
+        return None, None, None
+    position_moves = position_string.strip("[]").split(" ")
+    print(position_moves)
+    return position_moves, address, request_id
 
 
-def encode_move(move: Move) -> str:
-    l = list(move.encode("utf-8"))
-    while len(l) < 8:
-        l.append(0)
-    return "".join(f"{b:02x}" for b in l)
-
-
-def encode_position(position: Position) -> str:
-    return ",".join(encode_move(move) for move in position)
-
-
-def post_position_result(position: Position, result: PositionResult):
-    args = ["nil", "wallet", "send-message", "--abi", "contracts/Game/ChessOracle.abi", ORACLE_ADDRESS, "resolveRequest", encode_position(position), str(result.value)]
-    print(subprocess.run(args, capture_output=True).stdout)
+def post_position_result(request_id: int, result: PositionResult):
+    args = ["nil", "wallet", "send-message", "--abi", "contracts/Game/ChessOracle.abi", ORACLE_ADDRESS, "resolveRequest", str(request_id), str(result.value)]
+    print(subprocess.run(args, capture_output=True, text=True).stdout)
 
 
 def position_result(position: Position) -> PositionResult:
     board = chess.Board()
-    for move in position:
-        board.push_uci(move)
-        if not board.is_valid():
-            return INVALID
+    try:
+        for move in position:
+            board.push_san(move)
+    except chess.IllegalMoveError:
+        return PositionResult.INVALID
     if board.is_checkmate():
-        return WIN
+        return PositionResult.WIN
     if board.is_stalemate() or board.is_insufficient_material():
-        return DRAW
-    return NONE
+        return PositionResult.DRAW
+    return PositionResult.NONE
     
 
 
 def main():
     while True:
-        for position in fetch_unresolved_positions():
-            result = position_result(position)
-            post_position_result(position, result)
-        time.sleep(0.1)
+        position, address, request_id = fetch_unresolved_position()
+        if request_id is None:
+            time.sleep(0.2)
+            continue
+        print(f"Handling request {position} from {address} with id {request_id}: ", end="", flush=True)
+        result = position_result(position)
+        print(result.name)
+        post_position_result(request_id, result)
 
 
 if __name__ == "__main__":

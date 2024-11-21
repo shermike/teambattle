@@ -145,24 +145,48 @@ contract Game is NilBase {
     }
 }
 
-contract ChessOracle is NilBase, IGameOracle {
-    mapping(bytes32 => address[]) private requesters;
-    string[][] public requests;
+struct Request {
+    string[] moves;
+    address requester;
+    uint256 id;
+}
 
-    function registerRequest(string[] memory moves) public {
-        requests.push(moves);
-        requesters[keccak256(abi.encode(moves))].push(msg.sender);
+contract ChessOracle is NilBase, IGameOracle {
+    mapping(uint256 => Request) public requests;
+    uint256 public queue_front;
+    uint256 public queue_back;
+
+    constructor() {
+        queue_back = 1;
+        queue_front = 1;
     }
 
-    function resolveRequest(string[] memory request, GameResult result) public {
-        address[] memory addrs = requesters[keccak256(abi.encode(request))];
-        bytes memory res = abi.encodeWithSignature("setResultFromOracle(GameResult)", result);
-        for (uint256 i = 0; i < addrs.length; i++) {
-            Nil.asyncCall(addrs[i], address(this), 0, res);
+    function updateFront() private {
+        while (queue_front < queue_back && requests[queue_front].requester == address(0)) {
+            ++queue_front;
         }
     }
 
-    function getRequests() public view returns(string[][] memory) {
-        return requests;
+    function registerRequest(string[] memory moves) public {
+        uint256 id = queue_back;
+        ++queue_back;
+        requests[id].moves = moves;
+        requests[id].requester = msg.sender;
+        requests[id].id = id;
+        updateFront();
+    }
+
+    function resolveRequest(uint256 id, GameResult result) public {
+        require(requests[id].requester != address(0));
+        Request memory req = requests[id];
+        delete requests[id];
+        address requester = req.requester;
+        bytes memory res = abi.encodeWithSignature("setResultFromOracle(GameResult)", result);
+        Nil.asyncCall(requester, address(this), 0, res);
+        updateFront();
+    }
+
+    function getRequest() public view returns(Request memory result) {
+        result = requests[queue_front];
     }
 }
