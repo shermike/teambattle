@@ -1,0 +1,24 @@
+{
+  "name": "create-nil-hardhat-project",
+  "version": "1.0.2",
+  "main": "index.js",
+  "bin": {
+    "create-nil-hardhat-template": "scripts/cli.js"
+  },
+  "scripts": {
+    "start": "node scripts/cli.js",
+    "tests": "npx hardhat test --network nil"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@nilfoundation/hardhat-plugin": "file:../nil/hardhat-plugin",
+    "@nilfoundation/smart-contracts": "^0.1.5",
+    "@nomicfoundation/hardhat-ethers": "^3.0.6",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "dotenv": "^16.4.5",
+    "ts-node": "^10.9.2"
+  }
+}

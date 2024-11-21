@@ -1,0 +1,13 @@
+{
+    "Game": {
+      "a": {
+          "players": ["0x0001afc512d27fe03103371dc6fd786093483008"]
+      },
+      "b": {
+          "players": ["0x0001c21dd5c9d139d1c6afd3f2af9857c1b3ff58"]
+      },
+      "_bid": 100,
+      "_moveTimeout": 43200,
+      "_oracle": "0x000124813C07072efBB16709F66943a83AAf7f51"
+    }
+  }
