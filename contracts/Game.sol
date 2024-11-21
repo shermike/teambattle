@@ -15,16 +15,6 @@ enum GameResult {
     DRAW
 }
 
-interface IGame {
-    function getWinner() external returns (address);
-    function getData() external returns (bytes memory);
-    function getName() external returns (string memory);
-    //function init(Team memory a, Team memory b) external;
-
-    // oracle under the hood
-    function getRating(address player) external returns (uint);
-}
-
 interface IGameOracle {
     function registerRequest(bytes8[] memory request) external;
     // function getRating(address player) external returns(uint);
@@ -148,13 +138,6 @@ contract Game is NilBase {
             return true;
         }
         return false;
-    }
-}
-
-contract GameFactory {
-
-    function deploy() public returns(address) {
-        // address addr = Nil.asyncDeploy()
     }
 }
 

@@ -3,9 +3,10 @@ import "@nomicfoundation/hardhat-toolbox";
 import * as dotenv from "dotenv";
 import "@nilfoundation/hardhat-plugin";
 import {getValue, NilHardhatUserConfig} from "@nilfoundation/hardhat-plugin";
+import "./tasks/GameTask"
 
 dotenv.config();
-
+const endpoint = getValue("rpc_endpoint");
 const walletAddress = getValue("address");
 const privateKey = getValue("private_key");
 
@@ -17,11 +18,10 @@ const config: NilHardhatUserConfig = {
   },
   networks: {
     nil: {
-      url: process.env.NIL_RPC_ENDPOINT,
+      url: endpoint,
       accounts: privateKey ? [privateKey] : [],
     },
   },
   walletAddress: walletAddress,
-  debug: true,
 };
 export default config;
