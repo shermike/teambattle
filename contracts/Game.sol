@@ -23,12 +23,12 @@ interface IGameOracle {
 contract Game is NilBase {
     uint public round;
     Team[] teams;
-    GameResult result;
+    GameResult public result;
     uint moveStart;
     uint moveTimeout;
-    uint bid;
+    uint public bid;
     int public winner = -1;
-    address oracle;
+    address public oracle;
 
     bytes8[] movesChain;
     mapping(address => bytes8) voters;
@@ -42,6 +42,10 @@ contract Game is NilBase {
         moveTimeout = _moveTimeout;
         moveStart = block.number;
         oracle = _oracle;
+    }
+
+    function getMoves() public view returns(bytes8[] memory) {
+        return movesChain;
     }
 
     function getTeamId(address player) public view returns(int) {
