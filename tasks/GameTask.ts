@@ -27,6 +27,8 @@ task("game", "Retrieve currency name and ID")
         console.log("Remaining: " + tm);
         const moves = await game.getMoves();
         console.log("Moves: " + moves);
+        const vmoves = await game.getVotedMoves();
+        console.log("Voted Moves: " + vmoves);
         const round = await game.round();
         console.log("Round: " + round);
         const res = await game.round();

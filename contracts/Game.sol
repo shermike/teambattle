@@ -48,6 +48,10 @@ contract Game is NilBase {
         return movesChain;
     }
 
+    function getVotedMoves() public view returns(string[] memory) {
+        return moveList;
+    }
+
     function getTeamId(address player) public view returns(int) {
         for (uint i = 0; i < teams.length; i++) {
             for (uint j = 0; j < teams[i].players.length; j++) {
@@ -90,7 +94,6 @@ contract Game is NilBase {
 
         Nil.asyncCall(oracle, address(this), 0, callData);
 
-        IGameOracle(oracle).registerRequest(movesChain);
         moveStart = block.number;
         round++;
 
@@ -98,7 +101,7 @@ contract Game is NilBase {
     }
 
     function voteMove(string memory move) public {
-        require(bytes(move).length == 0);
+        // require(bytes(move).length == 0);
         voters[msg.sender] = move;
         moveList.push(move);
 

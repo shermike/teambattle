@@ -23,5 +23,6 @@ const config: NilHardhatUserConfig = {
     },
   },
   walletAddress: walletAddress,
+  debug: true,
 };
 export default config;
