@@ -32,8 +32,8 @@ task("game", "Retrieve currency name and ID")
         const res = await game.round();
         console.log("Result: " + round);
     } else if (taskArgs.command == "vote") {
-        // const res = await game.voteMove();
-        // console.log("Result: " + round);
+        // const m = ethers.utils.defaultAbiCoder.encode(["string"], "e2e4");
+        await game.voteMove("e2e4");
     } else {
         console.log("Unkwnown command")
     }
