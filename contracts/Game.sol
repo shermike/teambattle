@@ -30,7 +30,7 @@ interface IGameOracle {
     // function getRating(address player) external returns(uint);
 }
 
-contract GameBase is NilBase {
+contract Game is NilBase {
     uint public round;
     Team[] teams;
     GameResult result;
@@ -65,15 +65,21 @@ contract GameBase is NilBase {
         return -1;
     }
 
+    function getTeamsNum() public view returns(uint) {
+        return teams.length;
+    }
+
+    function getTeam(uint index) public view returns(Team memory) {
+        return teams[index];
+    }
+
     function finishMove() internal {
         for (uint i = 0; i < teams[getCurrentTeamId()].players.length; i++) {
             address voter = teams[getCurrentTeamId()].players[i];
             bytes8 moveData = voters[voter];
-            // Check
-            if (moveData[0] == 0) {
-                continue;
+            if (moveData[0] != 0) {
+                moveWeigths[moveData] += 1;
             }
-            moveWeigths[moveData] += 1;
         }
         bytes8 bestMove = moveList[0];
         for (uint i = 0; i < moveList.length; i++) {
@@ -86,16 +92,11 @@ contract GameBase is NilBase {
         }
         movesChain.push(bestMove);
 
-        // bytes memory context = bytes("");
         bytes memory callData = abi.encodeWithSelector(IGameOracle.registerRequest.selector, movesChain);
-
-        // Nil.sendRequest(oracle, 0, Nil.ASYNC_REQUEST_MIN_GAS, context, callData);
-        // (bytes memory returnData, bool success) = Nil.awaitCall(oracle, Nil.ASYNC_REQUEST_MIN_GAS, callData);
-        // require(success);
 
         Nil.asyncCall(oracle, address(this), 0, callData);
 
-        IGameOracle(oracle).registerRequest(moveList);
+        IGameOracle(oracle).registerRequest(movesChain);
         moveStart = block.number;
         round++;
 
@@ -105,7 +106,6 @@ contract GameBase is NilBase {
     function voteMove(bytes8 move) public {
         require(voters[msg.sender][0] == 0);
         voters[msg.sender] = move;
-        // moves[move].push(msg.sender);
         moveList.push(move);
 
         if (moveList.length == teams[getCurrentTeamId()].players.length) {
