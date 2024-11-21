@@ -118,15 +118,15 @@ contract Game is NilBase {
         return round % teams.length;
     }
 
-    function setResultFromOracle(GameResult _result) public {
-        result = _result;
-        if (result == GameResult.WIN) {
-            winner = int(getCurrentTeamId());
-        } else if (result == GameResult.DRAW) {
-            winner = -2;
-        } else if (result == GameResult.INVALID) {
-            winner = int((round + 1) % teams.length);
-        }
+    function setResultFromOracle(uint8 _result) public {
+        // result = _result;
+        // if (result == GameResult.WIN) {
+        //     winner = int(getCurrentTeamId());
+        // } else if (result == GameResult.DRAW) {
+        //     winner = -2;
+        // } else if (result == GameResult.INVALID) {
+        //     winner = int((round + 1) % teams.length);
+        // }
     }
 
     function setWinner(int id) internal {
@@ -184,7 +184,7 @@ contract ChessOracle is NilBase, IGameOracle {
         Request memory req = requests[id];
         delete requests[id];
         address requester = req.requester;
-        bytes memory res = abi.encodeWithSignature("setResultFromOracle(GameResult)", result);
+        bytes memory res = abi.encodeWithSignature("setResultFromOracle(uint8)", uint8(result));
         Nil.asyncCall(requester, address(this), 0, res);
         updateFront();
     }

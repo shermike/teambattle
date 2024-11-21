@@ -27,7 +27,7 @@ module.exports = buildModule("Game", (m: any) => {
       },
       100,
       43200,
-      "0x000124813C07072efBB16709F66943a83AAf7f51"
+      "0x0001469126117fb447FA268Db8b497B267d0C828"
     ]
   );
 

@@ -31,8 +31,10 @@ task("game", "Retrieve currency name and ID")
         console.log("Voted Moves: " + vmoves);
         const round = await game.round();
         console.log("Round: " + round);
-        const res = await game.round();
-        console.log("Result: " + round);
+        const w = await game.winner();
+        console.log("Winner: " + w);
+        const res = await game.result();
+        console.log("Result: " + res);
     } else if (taskArgs.command == "vote") {
         // const m = ethers.utils.defaultAbiCoder.encode(["string"], "e2e4");
         await game.voteMove("e2e4");
